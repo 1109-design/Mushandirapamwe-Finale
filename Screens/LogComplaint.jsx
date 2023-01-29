@@ -12,6 +12,7 @@ import {
   KeyboardAvoidingView,
 } from "react-native";
 import { Icon } from "react-native-elements";
+import RNPickerSelect from "react-native-picker-select";
 
 export default function LogComplaint() {
   return (
@@ -30,7 +31,7 @@ export default function LogComplaint() {
                   size={50}
                 />
               </View>
-              <Text style={styles.loginTitleText}>Login</Text>
+              <Text style={styles.loginTitleText}></Text>
               <View style={styles.hr}></View>
               <View style={styles.inputBox}>
                 <Text style={styles.inputLabel}>Email</Text>
@@ -50,26 +51,9 @@ export default function LogComplaint() {
                   textContentType="password"
                 />
               </View>
-              <View style={styles.inputBox}>
-                <Text style={styles.inputLabel}>Password</Text>
-                <TextInput
-                  style={styles.input}
-                  autoCapitalize={false}
-                  secureTextEntry={true}
-                  textContentType="password"
-                />
-              </View>
-              <View style={styles.inputBox}>
-                <Text style={styles.inputLabel}>Password</Text>
-                <TextInput
-                  style={styles.input}
-                  autoCapitalize={false}
-                  secureTextEntry={true}
-                  textContentType="password"
-                />
-              </View>
+             
               <TouchableOpacity style={styles.loginButton}>
-                <Text style={styles.loginButtonText}>Login</Text>
+                <Text style={styles.loginButtonText}>Submit</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -104,7 +88,7 @@ const styles = StyleSheet.create({
   },
   centerizedView: {
     width: "100%",
-    top: "11%",
+    top: "15%",
   },
   authBox: {
     width: "80%",
@@ -151,7 +135,7 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 0.5,
     backgroundColor: "#444",
-    marginTop: 6,
+    marginTop: 0,
   },
   inputBox: {
     marginTop: 10,
@@ -169,7 +153,7 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     backgroundColor: "#ff4757",
-    marginTop: 10,
+    marginTop: 30,
     paddingVertical: 10,
     borderRadius: 4,
   },

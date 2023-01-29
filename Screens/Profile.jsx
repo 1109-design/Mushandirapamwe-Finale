@@ -13,36 +13,120 @@ import {
 } from "react-native";
 import { Icon } from "react-native-elements";
 import { ListItem, Left, Right, Radio, Content } from "native-base";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import FlashMessage from "react-native-flash-message";
+import { showMessage, hideMessage } from "react-native-flash-message";
 
 export default function PaymentScreen1({ navigation }) {
-  const [cart, setCart] = useState([
-    {
-      id: "PID000101",
-      name: "Wired Mouse",
-      company: "Logitech",
-      img: "https://assets.logitech.com/assets/65019/3/mouton-boat-m90-refresh-gallery-image.png",
-      quantity: 1,
-      price: 299,
-      perPrice: 299,
-    },
-    {
-      id: "PID000106",
-      name: "Airpods",
-      company: "Apple",
-      img: "https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/MV7N2?wid=1144&hei=1144&fmt=jpeg&qlt=95&op_usm=0.5,0.5&.v=1551489688005",
-      quantity: 1,
-      price: 13999,
-      perPrice: 13999,
-    },
-  ]);
-  const [shippingMethod, setShippingMethod] = useState("Normal");
+ const [fullName, setFullName] = useState("");
+ const [phoneNumber, setPhoneNumber] = useState("");
+ const [idNumber, setIdNumber] = useState("");
+
+ const [displayIdNumber, setDisplayIdNumber] = useState("");
+ const [displayPhoneNumber, setDisplayPhoneNumber] = useState("");
+ const [displayFullName, setDisplayFullName] = useState("");
+
+//saving and updating profile
+
+
+  const submitHandler = async (value) => {
+    try {
+      // validation rules
+
+      if (
+        fullName == "" ||
+        phoneNumber == ""
+      ) {
+        showMessage({
+          message: "Make sure  you have filled out all required fileds",
+          type: "danger",
+        });
+        return;
+      }
+       if (fullName.length < 5 || phoneNumber.length < 10) {
+         showMessage({
+           message: "The minimum number of characters required is 10",
+           type: "danger",
+         });
+         return;
+       }
+
+       const items = 
+       {
+         fullName : fullName,
+         phoneNumber : phoneNumber,
+         IdNumber : idNumber,
+       };
+      //  console.log(items);
+        // console.log(JSON.stringify(items));
+        // return;
+      await AsyncStorage.setItem("profileData", JSON.stringify(items));
+       showMessage({
+         message: "Profile has been updated successfully",
+        //  description: "Update your information when neccessary",
+         type: "success",
+       });
+
+             setDisplayFullName(fullName);
+             setDisplayPhoneNumber(phoneNumber);
+             setDisplayIdNumber(idNumber);
+
+        setFullName("");
+        setIdNumber("");
+        setPhoneNumber("");
+    } catch (error) {
+      showMessage({
+        message:error,
+        description: error,
+        type: "error",
+      });
+    }
+  };
+
+ 
 
   useEffect(() => {
     StatusBar.setBarStyle("light-content", true);
-  }, []);
 
+
+(async () => {
+  try {
+    const value = await AsyncStorage.getItem("profileData");
+    const data = JSON.parse(value);
+    // console.log(data.fullName);
+
+    if (value !== null) {
+
+      setDisplayFullName(data.fullName);
+      setDisplayPhoneNumber(data.phoneNumber);
+      setDisplayIdNumber(data.idNumber);
+     
+      
+    }
+    else if(value == null)
+    {
+
+      showMessage({
+        message: "Set up your profile to proceed",
+        type: "danger",
+      });
+
+
+    }
+    
+    
+  } catch (error) {
+    // console.log(error)
+   showMessage({
+     message: "We are facing a trouble retreiving your info.Try again later",
+    //  description: error,
+     type: "error",
+   });
+  }
+})();
+  }, []); 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} showsVerticalScrollIndicator={false}>
       <View style={styles.header}>
         <TouchableOpacity
           style={{
@@ -55,165 +139,71 @@ export default function PaymentScreen1({ navigation }) {
           <Icon name="angle-left" type="font-awesome" size={30} color="#fff" />
         </TouchableOpacity>
       </View>
-      <Text style={styles.paymentTitle}>Payment</Text>
+      <Text style={styles.paymentTitle}>My Profile</Text>
       <View style={styles.cartContainer}>
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <View>
           <View style={styles.cartTitleView}>
-            <Icon name="shopping-cart" type="font-awesome-5" />
-            <Text style={styles.cartTitle}>My Cart</Text>
+            <Icon name="user" type="font-awesome-5" />
+            <Text style={styles.cartTitle}>
+              {displayFullName ? displayFullName : " "}
+            </Text>
+          </View>
+          <View>
+            <View style={styles.couponInputView}>
+              <TextInput
+                placeholder="Full Name"
+                style={styles.couponInput}
+                onChangeText={(input) => setFullName(input)}
+                value={fullName}
+              />
+            </View>
+            <View style={styles.couponInputView}>
+              <TextInput
+                placeholder="Phone Number"
+                style={styles.couponInput}
+                onChangeText={(input) => setPhoneNumber(input)}
+                keyboardType="numeric"
+                value={phoneNumber}
+              />
+            </View>
+            <View style={styles.couponInputView}>
+              <TextInput
+                placeholder="ID Number (Optional)"
+                style={styles.couponInput}
+                onChangeText={(input) => setIdNumber(input)}
+                value={idNumber}
+              />
+            </View>
+            <TouchableOpacity
+              style={styles.checkoutButton}
+              onPress={submitHandler}
+            >
+              <Text style={styles.checkoutButtonText}>Update Profile</Text>
+            </TouchableOpacity>
+            <View style={styles.subtotalView}>
+              <Text style={styles.subtotalText}>My Creditentials</Text>
+              <Text style={styles.subtotalPrice}></Text>
+            </View>
+            <View style={styles.shippingView}>
+              {/* <Text style={styles.shippingText}>Shipping -</Text> */}
+              <View style={styles.shippingItemsView}>
+                <Text>Name: {displayFullName ? displayFullName : " "}</Text>
+              </View>
+              <View style={styles.shippingItemsView}>
+                <Text>
+                  Phone Number: {displayPhoneNumber ? displayPhoneNumber : " "}
+                </Text>
+              </View>
+              <View style={styles.shippingItemsView}>
+                <Text>ID Number: {displayIdNumber ? displayIdNumber : " "}</Text>
+              </View>
+            </View>
           </View>
 
-          {cart.length > 0 ? (
-            <View>
-              {cart
-                .sort((a, b) => a.name > b.name)
-                .map((product) => (
-                  <View style={styles.productView}>
-                    <Image
-                      style={styles.productImage}
-                      source={{
-                        uri: product.img,
-                      }}
-                    />
-                    <View style={styles.productMiddleView}>
-                      <Text style={styles.productTitle}>{product.name}</Text>
-                      <Text style={styles.productCompanyTitle}>
-                        {product.company}
-                      </Text>
-                    </View>
-                    <View style={styles.productRightView}>
-                      <Text
-                        style={styles.productPriceText}
-                      >{`₹${product.price}`}</Text>
-                      <View style={styles.productItemCounterView}>
-                        <TouchableOpacity
-                          onPress={() => {
-                            if (product.quantity === 1) {
-                              return Alert.alert(
-                                `Remove ${product.name}?`,
-                                "",
-                                [
-                                  { text: "Cancel" },
-                                  {
-                                    text: "Remove",
-                                    onPress: () => {
-                                      const newCart = cart.filter(
-                                        (p) => p.id !== product.id
-                                      );
-                                      setCart(newCart);
-                                    },
-                                  },
-                                ]
-                              );
-                            }
-                            const newProd = {
-                              ...product,
-                              quantity: product.quantity - 1,
-                              price: product.price - product.perPrice,
-                            };
-                            const restProds = cart.filter(
-                              (p) => p.id !== product.id
-                            );
-                            setCart([...restProds, newProd]);
-                          }}
-                        >
-                          <Icon
-                            style={styles.toggleCounterButton}
-                            name="minus-circle"
-                            type="font-awesome"
-                          />
-                        </TouchableOpacity>
-                        <Text style={styles.counterValue}>
-                          {product.quantity}
-                        </Text>
-                        <TouchableOpacity
-                          onPress={() => {
-                            const newProd = {
-                              ...product,
-                              quantity: product.quantity + 1,
-                              price: product.price + product.perPrice,
-                            };
-                            const restProds = cart.filter(
-                              (p) => p.id !== product.id
-                            );
-                            setCart([...restProds, newProd]);
-                          }}
-                        >
-                          <Icon
-                            style={styles.toggleCounterButton}
-                            name="plus-circle"
-                            type="font-awesome"
-                          />
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                  </View>
-                ))}
-              <View style={styles.couponInputView}>
-                <TextInput
-                  placeholder="Coupon Code"
-                  style={styles.couponInput}
-                />
-                <TouchableOpacity style={styles.couponButton}>
-                  <Text style={styles.couponButtonText}>Apply Coupon</Text>
-                </TouchableOpacity>
-              </View>
-              <View style={styles.subtotalView}>
-                <Text style={styles.subtotalText}>Subtotal -</Text>
-                <Text style={styles.subtotalPrice}>
-                  ₹{cart.reduce((acc, val) => val.price + acc, 0)}
-                </Text>
-              </View>
-              <View style={styles.shippingView}>
-                <Text style={styles.shippingText}>Shipping -</Text>
-                <View style={styles.shippingItemsView}>
-                  <TouchableOpacity
-                    style={styles.shippingItem}
-                    onPress={() => {
-                      setShippingMethod("Normal");
-                    }}
-                  >
-                    <Text style={styles.shippingItemText}>Normal (Free)</Text>
-                    <Radio selected={shippingMethod === "Normal"} />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.shippingItem}
-                    onPress={() => {
-                      setShippingMethod("Express");
-                    }}
-                  >
-                    <Text style={styles.shippingItemText}>Express (₹60)</Text>
-                    <Radio selected={shippingMethod === "Express"} />
-                  </TouchableOpacity>
-                </View>
-              </View>
-              <View style={styles.totalView}>
-                <Text style={styles.totalText}>Total -</Text>
-                {shippingMethod === "Normal" ? (
-                  <Text style={styles.totalPrice}>
-                    ₹{cart.reduce((acc, val) => val.price + acc, 0)}
-                  </Text>
-                ) : (
-                  <Text style={styles.totalPrice}>
-                    ₹{cart.reduce((acc, val) => val.price + acc, 0) + 60}
-                  </Text>
-                )}
-              </View>
-              <TouchableOpacity style={styles.checkoutButton}>
-                <Text style={styles.checkoutButtonText}>
-                  Proceed to Checkout
-                </Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <View style={styles.emptyCartView}>
-              <Text style={styles.emptyCartViewText}>Your cart is empty.</Text>
-            </View>
-          )}
-
           <View style={{ height: 100 }}></View>
-        </ScrollView>
+        </View>
       </View>
+      <FlashMessage position="top" duration={4000} />
     </View>
   );
 }
@@ -222,7 +212,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#333",
-    paddingTop: 40,
+    paddingTop: 0,
   },
   header: {
     alignItems: "flex-start",
@@ -351,7 +341,7 @@ const styles = StyleSheet.create({
   subtotalView: {
     display: "flex",
     flexDirection: "row",
-    marginTop: 40,
+    marginTop: 30,
     justifyContent: "space-between",
     paddingBottom: 10,
     borderBottomColor: "#333",

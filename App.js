@@ -19,13 +19,9 @@ export default function ReactNavigationBottomTabs() {
     <NavigationContainer>
       <Tab.Navigator
         screenOptions={{
-          tabBarHideOnKeyboard: true,
-          // inactiveBackgroundColor: "#ced6e0",
-          activeTintColor: "#ff4757",
-        }}
-        tabBarOptions={{
-          activeTintColor: "#ff4757",
-          inactiveBackgroundColor: "#ced6e0",
+          tabBarHideOnKeyboard: true, 
+          tabBarActiveTintColor: "#ff4757",
+     
         }}
       >
         <Tab.Screen

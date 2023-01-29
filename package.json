@@ -9,7 +9,10 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "~1.17.3",
+    "@react-native-picker/picker": "2.4.8",
     "@react-navigation/bottom-tabs": "^6.5.3",
+    "axios": "^1.2.5",
     "expo": "~47.0.12",
     "expo-status-bar": "~1.4.2",
     "native-base": "^3.4.25",
@@ -17,6 +20,8 @@
     "react-dom": "18.1.0",
     "react-native": "0.70.5",
     "react-native-elements": "^3.4.3",
+    "react-native-flash-message": "^0.4.0",
+    "react-native-picker-select": "^8.0.4",
     "react-native-web": "~0.18.9"
   },
   "devDependencies": {
