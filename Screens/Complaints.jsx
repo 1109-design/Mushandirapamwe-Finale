@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
-  SafeAreaView,
   Alert,
 } from "react-native";
 import { Icon } from "react-native-elements";

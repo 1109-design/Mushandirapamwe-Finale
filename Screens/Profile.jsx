@@ -25,6 +25,8 @@ export default function PaymentScreen1({ navigation }) {
  const [displayIdNumber, setDisplayIdNumber] = useState("");
  const [displayPhoneNumber, setDisplayPhoneNumber] = useState("");
  const [displayFullName, setDisplayFullName] = useState("");
+  const [hideOnInitialLogin, setHideOnInitialLogin] = useState("God Is Good");
+
 
 //saving and updating profile
 
@@ -99,7 +101,9 @@ export default function PaymentScreen1({ navigation }) {
 
       setDisplayFullName(data.fullName);
       setDisplayPhoneNumber(data.phoneNumber);
-      setDisplayIdNumber(data.idNumber);
+      setDisplayIdNumber(data.IdNumber);
+      setHideOnInitialLogin("");
+      // console.log(data);
      
       
     }
@@ -118,7 +122,7 @@ export default function PaymentScreen1({ navigation }) {
   } catch (error) {
     // console.log(error)
    showMessage({
-     message: "We are facing a trouble retreiving your info.Try again later",
+     message: "We are facing a trouble retrieving your info.Try again later",
     //  description: error,
      type: "error",
    });
@@ -145,60 +149,83 @@ export default function PaymentScreen1({ navigation }) {
           <View style={styles.cartTitleView}>
             <Icon name="user" type="font-awesome-5" />
             <Text style={styles.cartTitle}>
-              {displayFullName ? displayFullName : " "}
+              {displayFullName ? displayFullName : <Text>--------</Text>}
             </Text>
           </View>
-          <View>
-            <View style={styles.couponInputView}>
-              <TextInput
-                placeholder="Full Name"
-                style={styles.couponInput}
-                onChangeText={(input) => setFullName(input)}
-                value={fullName}
-              />
-            </View>
-            <View style={styles.couponInputView}>
-              <TextInput
-                placeholder="Phone Number"
-                style={styles.couponInput}
-                onChangeText={(input) => setPhoneNumber(input)}
-                keyboardType="numeric"
-                value={phoneNumber}
-              />
-            </View>
-            <View style={styles.couponInputView}>
-              <TextInput
-                placeholder="ID Number (Optional)"
-                style={styles.couponInput}
-                onChangeText={(input) => setIdNumber(input)}
-                value={idNumber}
-              />
-            </View>
-            <TouchableOpacity
-              style={styles.checkoutButton}
-              onPress={submitHandler}
-            >
-              <Text style={styles.checkoutButtonText}>Update Profile</Text>
-            </TouchableOpacity>
-            <View style={styles.subtotalView}>
-              <Text style={styles.subtotalText}>My Creditentials</Text>
-              <Text style={styles.subtotalPrice}></Text>
-            </View>
-            <View style={styles.shippingView}>
-              {/* <Text style={styles.shippingText}>Shipping -</Text> */}
-              <View style={styles.shippingItemsView}>
-                <Text>Name: {displayFullName ? displayFullName : " "}</Text>
-              </View>
-              <View style={styles.shippingItemsView}>
-                <Text>
-                  Phone Number: {displayPhoneNumber ? displayPhoneNumber : " "}
-                </Text>
-              </View>
-              <View style={styles.shippingItemsView}>
-                <Text>ID Number: {displayIdNumber ? displayIdNumber : " "}</Text>
-              </View>
-            </View>
+          <View style={styles.cartTitleView}>
+            <Icon name="list" type="font-awesome-5" />
+            <Text style={styles.cartTitle}>
+              {displayPhoneNumber ? displayPhoneNumber : <Text>--------</Text>}
+            </Text>
           </View>
+          <View style={styles.cartTitleView}>
+            <Icon name="flag" type="font-awesome-5" />
+            <Text style={styles.cartTitle}>
+              {displayIdNumber ? displayIdNumber : <Text>--------</Text>}
+            </Text>
+          </View>
+          <TouchableOpacity style={styles.checkoutButton}>
+            <Text style={styles.checkoutButtonText}>Edit Profile</Text>
+          </TouchableOpacity>
+
+          {!displayFullName || hideOnInitialLogin ? (
+            <View>
+              <View style={styles.couponInputView}>
+                <TextInput
+                  placeholder="Full Name"
+                  style={styles.couponInput}
+                  onChangeText={(input) => setFullName(input)}
+                  value={fullName}
+                />
+              </View>
+              <View style={styles.couponInputView}>
+                <TextInput
+                  placeholder="Phone Number"
+                  style={styles.couponInput}
+                  onChangeText={(input) => setPhoneNumber(input)}
+                  keyboardType="numeric"
+                  value={phoneNumber}
+                />
+              </View>
+              <View style={styles.couponInputView}>
+                <TextInput
+                  placeholder="ID Number (Optional)"
+                  style={styles.couponInput}
+                  onChangeText={(input) => setIdNumber(input)}
+                  value={idNumber}
+                />
+              </View>
+              <TouchableOpacity
+                style={styles.checkoutButton}
+                onPress={submitHandler}
+              >
+                <Text style={styles.checkoutButtonText}>Update Profile</Text>
+              </TouchableOpacity>
+              <View style={styles.subtotalView}>
+                <Text style={styles.subtotalText}>My Creditentials</Text>
+                <Text style={styles.subtotalPrice}></Text>
+              </View>
+              <View style={styles.shippingView}>
+                {/* <Text style={styles.shippingText}>Shipping -</Text> */}
+                <View style={styles.shippingItemsView}>
+                  <Text>Name: {displayFullName ? displayFullName : " "}</Text>
+                </View>
+                <View style={styles.shippingItemsView}>
+                  <Text>
+                    Phone Number:{" "}
+                    {displayPhoneNumber ? displayPhoneNumber : " "}
+                  </Text>
+                </View>
+                <View style={styles.shippingItemsView}>
+                  <Text>
+                    ID Number: {displayIdNumber ? displayIdNumber : " "}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          ) : (
+            <Text> </Text>
+          )}
 
           <View style={{ height: 100 }}></View>
         </View>
