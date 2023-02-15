@@ -10,6 +10,7 @@ import {
   Alert,
   SafeAreaView,
   ScrollView,
+  KeyboardAvoidingView
 } from "react-native";
 import { Icon } from "react-native-elements";
 import { ListItem, Left, Right, Radio, Content } from "native-base";
@@ -85,7 +86,6 @@ export default function PaymentScreen1({ navigation }) {
     }
   };
 
- 
 
   useEffect(() => {
     StatusBar.setBarStyle("light-content", true);
@@ -130,7 +130,11 @@ export default function PaymentScreen1({ navigation }) {
 })();
   }, []); 
   return (
-    <View style={styles.container} showsVerticalScrollIndicator={false}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.container}
+      showsVerticalScrollIndicator={false}
+    >
       <View style={styles.header}>
         <TouchableOpacity
           style={{
@@ -146,28 +150,6 @@ export default function PaymentScreen1({ navigation }) {
       <Text style={styles.paymentTitle}>My Profile</Text>
       <View style={styles.cartContainer}>
         <View>
-          <View style={styles.cartTitleView}>
-            <Icon name="user" type="font-awesome-5" />
-            <Text style={styles.cartTitle}>
-              {displayFullName ? displayFullName : <Text>--------</Text>}
-            </Text>
-          </View>
-          <View style={styles.cartTitleView}>
-            <Icon name="list" type="font-awesome-5" />
-            <Text style={styles.cartTitle}>
-              {displayPhoneNumber ? displayPhoneNumber : <Text>--------</Text>}
-            </Text>
-          </View>
-          <View style={styles.cartTitleView}>
-            <Icon name="flag" type="font-awesome-5" />
-            <Text style={styles.cartTitle}>
-              {displayIdNumber ? displayIdNumber : <Text>--------</Text>}
-            </Text>
-          </View>
-          <TouchableOpacity style={styles.checkoutButton}>
-            <Text style={styles.checkoutButtonText}>Edit Profile</Text>
-          </TouchableOpacity>
-
           {!displayFullName || hideOnInitialLogin ? (
             <View>
               <View style={styles.couponInputView}>
@@ -201,12 +183,16 @@ export default function PaymentScreen1({ navigation }) {
               >
                 <Text style={styles.checkoutButtonText}>Update Profile</Text>
               </TouchableOpacity>
+
+              {/* my credentials section */}
+            </View>
+          ) : (
+            <View>
               <View style={styles.subtotalView}>
                 <Text style={styles.subtotalText}>My Creditentials</Text>
                 <Text style={styles.subtotalPrice}></Text>
               </View>
               <View style={styles.shippingView}>
-                {/* <Text style={styles.shippingText}>Shipping -</Text> */}
                 <View style={styles.shippingItemsView}>
                   <Text>Name: {displayFullName ? displayFullName : " "}</Text>
                 </View>
@@ -223,15 +209,13 @@ export default function PaymentScreen1({ navigation }) {
                 </View>
               </View>
             </View>
-          ) : (
-            <Text> </Text>
           )}
 
           <View style={{ height: 100 }}></View>
         </View>
       </View>
       <FlashMessage position="top" duration={4000} />
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
