@@ -7,128 +7,106 @@ import {
   TouchableOpacity,
   Image,
   TextInput,
-  Alert,
-  SafeAreaView,
-  ScrollView,
-  KeyboardAvoidingView
+  KeyboardAvoidingView,
 } from "react-native";
 import { Icon } from "react-native-elements";
 import { ListItem, Left, Right, Radio, Content } from "native-base";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import FlashMessage from "react-native-flash-message";
 import { showMessage, hideMessage } from "react-native-flash-message";
 
 export default function PaymentScreen1({ navigation }) {
- const [fullName, setFullName] = useState("");
- const [phoneNumber, setPhoneNumber] = useState("");
- const [idNumber, setIdNumber] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [idNumber, setIdNumber] = useState("");
 
- const [displayIdNumber, setDisplayIdNumber] = useState("");
- const [displayPhoneNumber, setDisplayPhoneNumber] = useState("");
- const [displayFullName, setDisplayFullName] = useState("");
+  const [displayIdNumber, setDisplayIdNumber] = useState("");
+  const [displayPhoneNumber, setDisplayPhoneNumber] = useState("");
+  const [displayFullName, setDisplayFullName] = useState("");
   const [hideOnInitialLogin, setHideOnInitialLogin] = useState("God Is Good");
 
-
-//saving and updating profile
-
+  //saving and updating profile
 
   const submitHandler = async (value) => {
     try {
       // validation rules
 
-      if (
-        fullName == "" ||
-        phoneNumber == ""
-      ) {
+      if (fullName == "" || phoneNumber == "") {
         showMessage({
           message: "Make sure  you have filled out all required fileds",
           type: "danger",
         });
         return;
       }
-       if (fullName.length < 5 || phoneNumber.length < 10) {
-         showMessage({
-           message: "The minimum number of characters required is 10",
-           type: "danger",
-         });
-         return;
-       }
+      if (fullName.length < 5 || phoneNumber.length < 10) {
+        showMessage({
+          message: "The minimum number of characters required is 10",
+          type: "danger",
+        });
+        return;
+      }
 
-       const items = 
-       {
-         fullName : fullName,
-         phoneNumber : phoneNumber,
-         IdNumber : idNumber,
-       };
+      const items = {
+        fullName: fullName,
+        phoneNumber: phoneNumber,
+        IdNumber: idNumber,
+      };
       //  console.log(items);
-        // console.log(JSON.stringify(items));
-        // return;
+      // console.log(JSON.stringify(items));
+      // return;
       await AsyncStorage.setItem("profileData", JSON.stringify(items));
-       showMessage({
-         message: "Profile has been updated successfully",
+      showMessage({
+        message: "Profile has been updated successfully",
         //  description: "Update your information when neccessary",
-         type: "success",
-       });
+        type: "success",
+      });
 
-             setDisplayFullName(fullName);
-             setDisplayPhoneNumber(phoneNumber);
-             setDisplayIdNumber(idNumber);
+      setDisplayFullName(fullName);
+      setDisplayPhoneNumber(phoneNumber);
+      setDisplayIdNumber(idNumber);
 
-        setFullName("");
-        setIdNumber("");
-        setPhoneNumber("");
+      setFullName("");
+      setIdNumber("");
+      setPhoneNumber("");
     } catch (error) {
       showMessage({
-        message:error,
+        message: error,
         description: error,
         type: "error",
       });
     }
   };
 
-
   useEffect(() => {
     StatusBar.setBarStyle("light-content", true);
 
+    (async () => {
+      try {
+        const value = await AsyncStorage.getItem("profileData");
+        const data = JSON.parse(value);
+        // console.log(data.fullName);
 
-(async () => {
-  try {
-    const value = await AsyncStorage.getItem("profileData");
-    const data = JSON.parse(value);
-    // console.log(data.fullName);
-
-    if (value !== null) {
-
-      setDisplayFullName(data.fullName);
-      setDisplayPhoneNumber(data.phoneNumber);
-      setDisplayIdNumber(data.IdNumber);
-      setHideOnInitialLogin("");
-      // console.log(data);
-     
-      
-    }
-    else if(value == null)
-    {
-
-      showMessage({
-        message: "Set up your profile to proceed",
-        type: "danger",
-      });
-
-
-    }
-    
-    
-  } catch (error) {
-    // console.log(error)
-   showMessage({
-     message: "We are facing a trouble retrieving your info.Try again later",
-    //  description: error,
-     type: "error",
-   });
-  }
-})();
-  }, []); 
+        if (value !== null) {
+          setDisplayFullName(data.fullName);
+          setDisplayPhoneNumber(data.phoneNumber);
+          setDisplayIdNumber(data.IdNumber);
+          setHideOnInitialLogin("");
+          // console.log(data);
+        } else if (value == null) {
+          showMessage({
+            message: "Set up your profile to proceed",
+            type: "danger",
+          });
+        }
+      } catch (error) {
+        // console.log(error)
+        showMessage({
+          message:
+            "We are facing a trouble retrieving your info.Try again later",
+          type: "error",
+        });
+      }
+    })();
+  }, []);
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -214,7 +192,7 @@ export default function PaymentScreen1({ navigation }) {
           <View style={{ height: 100 }}></View>
         </View>
       </View>
-      <FlashMessage position="top" duration={4000} />
+
     </KeyboardAvoidingView>
   );
 }

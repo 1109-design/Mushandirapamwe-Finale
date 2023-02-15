@@ -9,23 +9,77 @@ import {
   Image,
   ScrollView,
   Alert,
+  ActivityIndicator,
+  RefreshControl,
+  ToastAndroid,
 } from "react-native";
-import { Icon } from "react-native-elements";
+import { Icon, Badge } from "react-native-elements";
 import axios from "axios";
+import FlashMessage from "react-native-flash-message";
+import { showMessage, hideMessage } from "react-native-flash-message";
+import { withBadge } from "react-native-elements";
 
-export default function Complaints() {
+export default function Complaints({ navigation }) {
   const [searchText, setSearchText] = useState("");
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
+  const [isConditionMet, setIsConditionMet] = useState(false);
+  const [animating, setAnimating] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = React.useState(false);
 
   useEffect(() => {
     StatusBar.setBarStyle("dark-content", false);
-    axios.get("https://randomuser.me/api/?results=150").then(({ data }) => {
-      setUsers(data.results);
-    });
+    axios
+      .get(`http://172.16.13.49:8002/api/retrieve-complaints`)
+      .then(function (response) {
+        setIsLoading(false);
+        return response.data;
+      })
+      .then((responseData) => {
+        setAnimating(false);
+        setFilteredUsers(responseData);
+        console.log(responseData);
+        showMessage({
+          message: "Your complaints has been received retrieved",
+          type: "success",
+        });
+      })
+      .catch((error) => {
+        // Handle any errors that occur
+        console.log(error);
+
+        showMessage({
+          message: "Failed to retrieve. Check your network connection",
+          type: "danger",
+        });
+      });
   }, []);
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    axios
+      .get(`http://172.16.13.49:8002/api/retrieve-complaints`)
+      .then(function (response) {
+        setIsLoading(false);
+        return response.data;
+      })
+      .then((responseData) => {
+        setAnimating(false);
+        setFilteredUsers(responseData);
+       ToastAndroid.show("List sucessfully updated", ToastAndroid.SHORT);
+      })
+      .catch((error) => {
+        // Handle any errors that occur
+        console.log(error);
+        ToastAndroid.show("Failed due to network error", ToastAndroid.SHORT);
+      });
+       setRefreshing(false);
+  }, []);
+
   return (
-    <View style={{ flex: 1, paddingTop: 40 }}>
+    <View style={{ flex: 1, paddingTop: 0 }}>
+      <ActivityIndicator size="small" color="#0000ff" animating={isLoading} />
       <View style={styles.container}>
         <View style={styles.searchView}>
           <View style={styles.inputView}>
@@ -34,16 +88,6 @@ export default function Complaints() {
               style={styles.input}
               placeholder="Search"
               textContentType="name"
-              onChangeText={(text) => {
-                setSearchText(text);
-                if (text === "") {
-                  return setFilteredUsers([]);
-                }
-                const filtered_users = users.filter((user) =>
-                  user.name.first.toLowerCase().startsWith(text.toLowerCase())
-                );
-                setFilteredUsers(filtered_users);
-              }}
               returnKeyType="search"
             />
             {searchText.length === 0 ? (
@@ -63,38 +107,52 @@ export default function Complaints() {
           </View>
         </View>
         {filteredUsers.length > 0 ? (
-          <ScrollView>
+          <ScrollView
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+          >
             {filteredUsers.map((user) => (
               <TouchableOpacity
+                key={user.id}
                 style={styles.userCard}
-                onPress={() => {
-                  Alert.alert(
-                    `${user.name.first} ${user.name.last}`,
-                    `You can call me at ${user.phone}`
-                  );
-                }}
+                onPress={() => navigation.navigate("ComplaintDescription")}
               >
                 <Image
                   style={styles.userImage}
-                  source={{ uri: user.picture?.large }}
+                  source={require("../assets/jabawi.jpg")}
+                  // source={{ uri: user.picture?.large }}
                 />
                 <View style={styles.userCardRight}>
-                  <Text
+                  {/* <Text
                     style={{ fontSize: 18, fontWeight: "500" }}
-                  >{`${user.name.first} ${user.name.last}`}</Text>
-                  <Text>{`${user?.phone}`}</Text>
+                  >{`${user.full_name}`}</Text> */}
+                  <Text
+                    style={{ fontSize: 16, fontWeight: "400" }}
+                  >{`${user.full_name}`}</Text>
+                  <Text
+                    style={{ fontSize: 14, fontWeight: "300" }}
+                  >{`${user?.category}`}</Text>
+                  <Text style={{ fontSize: 12, fontWeight: "300" }}>
+                    <Badge
+                      value={user?.status}
+                      status={
+                        user?.status == "Pending"
+                          ? "warning"
+                          : user?.status == "Work In Progress"
+                          ? "primary"
+                          : "success"
+                      }
+                    />
+                  </Text>
                 </View>
               </TouchableOpacity>
             ))}
             <View style={{ height: 50 }}></View>
           </ScrollView>
-        ) : searchText.length > 0 ? (
-          <View style={styles.messageBox}>
-            <Text style={styles.messageBoxText}>No user found</Text>
-          </View>
         ) : (
           <View style={styles.messageBox}>
-            <Text style={styles.messageBoxText}>Search for users</Text>
+            <Text style={styles.messageBoxText}>No complaints reported</Text>
           </View>
         )}
       </View>

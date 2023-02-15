@@ -11,7 +11,7 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Alert,
-  ToastAndroid
+  ToastAndroid,
 } from "react-native";
 import { Icon } from "react-native-elements";
 import { Picker } from "@react-native-picker/picker";
@@ -21,9 +21,6 @@ import * as Location from "expo-location";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function LogComplaint() {
-
-
-
   const [category, setCategory] = useState("");
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
@@ -34,62 +31,54 @@ export default function LogComplaint() {
   const [description, setDescription] = useState(null);
 
   //getting location permissions and cordinates
-  
-   useEffect(() => {
-     (async () => {
-   
 
+  useEffect(() => {
+    (async () => {
       //get logged in user data
 
-       try {
-         const value = await AsyncStorage.getItem("profileData");
-         const data = JSON.parse(value);
-         console.log(data);
+      try {
+        const value = await AsyncStorage.getItem("profileData");
+        const data = JSON.parse(value);
+        console.log(data);
 
-         if (value !== null) {
-           setFullName(data.fullName);
-           setPhoneNumber(data.phoneNumber);
+        if (value !== null) {
+          setFullName(data.fullName);
+          setPhoneNumber(data.phoneNumber);
           //  setDisplayIdNumber(data.IdNumber);
           //  setHideOnInitialLogin("");
-          
-         } else if (value == null) {
-           showMessage({
-             message: "Set up your profile to proceed",
-             type: "danger",
-           });
-         }
-       } catch (error) {
-         console.log(error)
-         showMessage({
-           message:
-             "We are facing a trouble retrieving your info.Try again later",
-            // description: error,
-           type: "error",
-         });
-       }
+        } else if (value == null) {
+          showMessage({
+            message: "Set up your profile to proceed",
+            type: "danger",
+          });
+        }
+      } catch (error) {
+        console.log(error);
+        showMessage({
+          message:
+            "We are facing a trouble retrieving your info.Try again later",
+          // description: error,
+          type: "error",
+        });
+      }
 
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        setErrorMsg("Permission to access location was denied");
+        return;
+      }
 
+      let location = await Location.getCurrentPositionAsync({});
+      setLatitude(location.coords.latitude);
+      setLongitude(location.coords.longitude);
+      setLocation(location.coords);
 
-
-
-       let { status } = await Location.requestForegroundPermissionsAsync();
-       if (status !== "granted") {
-         setErrorMsg("Permission to access location was denied");
-         return;
-       }
-
-       let location = await Location.getCurrentPositionAsync({});
-       setLatitude(location.coords.latitude);
-       setLongitude(location.coords.longitude);
-       setLocation(location.coords);
-
-       ToastAndroid.show(
-         "We have successfully retrieved your location",
-         ToastAndroid.SHORT
-       );
-    
-     })();
-   }, []);
+      ToastAndroid.show(
+        "We have successfully retrieved your location",
+        ToastAndroid.SHORT
+      );
+    })();
+  }, []);
 
   //  let text = "Waiting..";
   //  if (errorMsg) {
@@ -97,80 +86,70 @@ export default function LogComplaint() {
   //  } else if (location) {
   //    text = JSON.stringify(location);
   //  }
-   
 
-   //submitting the form 
+  //submitting the form
 
+  const submitComplaintHandler = () => {
+    var signupData = JSON.stringify({
+      full_name: fullName,
+      phone_number: phoneNumber,
+      category: category,
+      description: description,
+      latitude: latitude,
+      longitude: longitude,
+    });
+    console.log(signupData);
 
-   const submitComplaintHandler = () => {
-     var signupData = JSON.stringify({
-       full_name: fullName,
-       phone_number: phoneNumber,
-       category: category,
-       description: description,
-       latitude: latitude,
-       longitude: longitude,
-     });
-     console.log(signupData);
+    if (category == "" || description == "" || latitude == null || longitude == null) {
+      showMessage({
+        message: "Fill out the whole form",
+        description: "All Form fields are required",
+        type: "danger",
+      });
+      return;
+    }
 
-     if (
-      
-       category == "" ||
-       description == ""
-     ) {
-       showMessage({
-         message: "Fill out the whole form",
-         description: "All Form fields are required",
-         type: "danger",
-       });
-       return;
-     }
+    //clearing the fields
 
-     //clearing tthe fields
-  
-     setCategory("");
-     setDescription("");
+    setCategory("");
+    setDescription("");
 
-     fetch(`http://192.168.231.77:8002/api/store-complaint`, {
-       method: "POST",
-       headers: {
-         Accept: "application/json",
-         // "Content-Type": "multipart/form-data"
-         "content-type": "undefined",
-       },
-       body: signupData,
-     })
-       .then((response) => {
-         response = response.json();
-         // console.log(response);
-         return response;
-       })
-       .then((responseData) => {
-         // console.log(JSON.stringify(data));
-         "POST Response " + responseData;
-         // data = JSON.stringify(data);
-         console.log(responseData);
-         if (responseData.code == 200) {
-           showMessage({
-             message: "Your complaint has been received successfully",
-             // description: "All Form fields are required",
-             type: "success",
-           });
-         }
-         console.log("submitted");
-       })
-       .catch((error) => {
-         showMessage({
-           message: "Oops..Failed to report.Check your network connection",
-           type: "danger",
-         });
-       });
-   };
- 
-
-
-
-
+    fetch(`http://172.16.13.49:8002/api/store-complaint`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        // "Content-Type": "application/json",
+        // "Content-Type": "multipart/form-data"
+        "content-type": "undefined",
+      },
+      body: signupData,
+    })
+      .then((response) => {
+        response = response.json();
+        // console.log(response);
+        return response;
+      })
+      .then((responseData) => {
+        // console.log(JSON.stringify(data));
+        "POST Response " + responseData;
+        // data = JSON.stringify(data);
+        console.log(responseData);
+        if (responseData.code == 200) {
+          showMessage({
+            message: "Your complaint has been logged successfully",
+            type: "success",
+          });
+        }
+        // console.log("submitted");
+      })
+      .catch((error) => {
+        console.log(error);
+        showMessage({
+          message: "Oops..Failed to report.Check your network connection",
+          type: "danger",
+        });
+      });
+  };
 
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
@@ -246,7 +225,9 @@ export default function LogComplaint() {
                 selectTextOnFocus={false}
                 // placeholder={"work"}
                 //  Longitude : {longitude} Latitude :{latitude}
-                value={"Long :" + " " + longitude + "Lat :" + " " + latitude}
+                value={
+                  "Long :" + " " + longitude + " | " + "Lat :" + " " + latitude
+                }
               />
             </View>
 

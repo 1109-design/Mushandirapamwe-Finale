@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet } from "react-native";
 
 // npm i @react-navigation/bottom-tabs react-native-elements
 import { NavigationContainer } from "@react-navigation/native";
@@ -9,6 +9,7 @@ import Home from "./Screens/Home";
 import LogComplaint from "./Screens/LogComplaint";
 import Complaints from "./Screens/Complaints";
 import Profile from "./Screens/Profile";
+import FlashMessage from "react-native-flash-message";
 
 
 
@@ -19,9 +20,8 @@ export default function ReactNavigationBottomTabs() {
     <NavigationContainer>
       <Tab.Navigator
         screenOptions={{
-          tabBarHideOnKeyboard: true, 
+          tabBarHideOnKeyboard: true,
           tabBarActiveTintColor: "#ff4757",
-     
         }}
       >
         <Tab.Screen
@@ -62,6 +62,7 @@ export default function ReactNavigationBottomTabs() {
           }}
         />
       </Tab.Navigator>
+      <FlashMessage position="top" duration={4000} />
     </NavigationContainer>
   );
 }
