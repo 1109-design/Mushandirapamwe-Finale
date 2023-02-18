@@ -100,13 +100,19 @@ export default function LogComplaint() {
     });
     console.log(signupData);
 
-    if (category == "" || description == "" || latitude == null || longitude == null) {
+    if (category == "" || description == "" ) {
       showMessage({
         message: "Fill out the whole form",
         description: "All Form fields are required",
         type: "danger",
       });
       return;
+    }
+    if(latitude == null){
+      let location =  Location.getCurrentPositionAsync({});
+      setLatitude(location.coords.latitude);
+      setLongitude(location.coords.longitude);
+      setLocation(location.coords);
     }
 
     //clearing the fields

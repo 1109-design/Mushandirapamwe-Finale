@@ -170,6 +170,10 @@ export default function PaymentScreen1({ navigation }) {
                 <Text style={styles.subtotalText}>My Creditentials</Text>
                 <Text style={styles.subtotalPrice}></Text>
               </View>
+              <Image
+                source={require("../assets/category-icons/no-profile.png")}
+                style={styles.coverImage}
+              />
               <View style={styles.shippingView}>
                 <View style={styles.shippingItemsView}>
                   <Text>Name: {displayFullName ? displayFullName : " "}</Text>
@@ -192,7 +196,6 @@ export default function PaymentScreen1({ navigation }) {
           <View style={{ height: 100 }}></View>
         </View>
       </View>
-
     </KeyboardAvoidingView>
   );
 }
@@ -405,5 +408,9 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "300",
     alignSelf: "center",
+  },
+  coverImage: {
+    height: 200,
+    left: 50,
   },
 });

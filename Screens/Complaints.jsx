@@ -40,10 +40,8 @@ export default function Complaints({ navigation }) {
         setAnimating(false);
         setFilteredUsers(responseData);
         console.log(responseData);
-        showMessage({
-          message: "Your complaints has been received retrieved",
-          type: "success",
-        });
+
+        ToastAndroid.show("List retrieved successfully", ToastAndroid.SHORT);
       })
       .catch((error) => {
         // Handle any errors that occur
@@ -67,18 +65,18 @@ export default function Complaints({ navigation }) {
       .then((responseData) => {
         setAnimating(false);
         setFilteredUsers(responseData);
-       ToastAndroid.show("List sucessfully updated", ToastAndroid.SHORT);
+        ToastAndroid.show("List sucessfully updated", ToastAndroid.SHORT);
       })
       .catch((error) => {
         // Handle any errors that occur
         console.log(error);
         ToastAndroid.show("Failed due to network error", ToastAndroid.SHORT);
       });
-       setRefreshing(false);
+    setRefreshing(false);
   }, []);
 
   return (
-    <View style={{ flex: 1, paddingTop: 0 }}>
+    <View style={{ flex: 1, paddingTop: 4 }}>
       <ActivityIndicator size="small" color="#0000ff" animating={isLoading} />
       <View style={styles.container}>
         <View style={styles.searchView}>
@@ -116,17 +114,17 @@ export default function Complaints({ navigation }) {
               <TouchableOpacity
                 key={user.id}
                 style={styles.userCard}
-                onPress={() => navigation.navigate("ComplaintDescription")}
+                onPress={() =>
+                  navigation.navigate("More Info", {
+                    user: { user },
+                  })
+                }
               >
                 <Image
                   style={styles.userImage}
                   source={require("../assets/jabawi.jpg")}
-                  // source={{ uri: user.picture?.large }}
                 />
                 <View style={styles.userCardRight}>
-                  {/* <Text
-                    style={{ fontSize: 18, fontWeight: "500" }}
-                  >{`${user.full_name}`}</Text> */}
                   <Text
                     style={{ fontSize: 16, fontWeight: "400" }}
                   >{`${user.full_name}`}</Text>
@@ -153,6 +151,9 @@ export default function Complaints({ navigation }) {
         ) : (
           <View style={styles.messageBox}>
             <Text style={styles.messageBoxText}>No complaints reported</Text>
+            <TouchableOpacity style={styles.loginButton} onPress={onRefresh}>
+              <Text style={styles.loginButtonText}>Refresh page</Text>
+            </TouchableOpacity>
           </View>
         )}
       </View>
@@ -165,6 +166,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 12,
     paddingTop: 10,
+    margin: 4,
   },
   searchView: {
     display: "flex",
@@ -211,5 +213,17 @@ const styles = StyleSheet.create({
   messageBoxText: {
     fontSize: 20,
     fontWeight: "500",
+  },
+  loginButton: {
+    backgroundColor: "#ff4757",
+    marginTop: 30,
+    paddingVertical: 10,
+    borderRadius: 4,
+  },
+  loginButtonText: {
+    color: "#fff",
+    textAlign: "center",
+    fontSize: 20,
+    fontWeight: "bold",
   },
 });
