@@ -25,7 +25,8 @@
     "react-native-elements": "^3.4.3",
     "react-native-flash-message": "^0.4.0",
     "react-native-pie-chart": "^2.1.1",
-    "react-native-web": "~0.18.9"
+    "react-native-web": "~0.18.9",
+    "expo-camera": "~13.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9"

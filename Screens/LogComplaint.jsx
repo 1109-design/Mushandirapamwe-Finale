@@ -19,8 +19,10 @@ import FlashMessage from "react-native-flash-message";
 import { showMessage, hideMessage } from "react-native-flash-message";
 import * as Location from "expo-location";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Camera, CameraType } from "expo-camera";
+import axios from "axios";
 
-export default function LogComplaint() {
+export default function LogComplaint({ navigation }) {
   const [category, setCategory] = useState("");
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
@@ -29,6 +31,13 @@ export default function LogComplaint() {
   const [fullName, setFullName] = useState(null);
   const [phoneNumber, setPhoneNumber] = useState(null);
   const [description, setDescription] = useState(null);
+
+  const update = {
+    update: true,
+  };
+
+  // const [type, setType] = useState(CameraType.back);
+  // const [permission, requestPermission] = Camera.useCameraPermissions();
 
   //getting location permissions and cordinates
 
@@ -72,6 +81,7 @@ export default function LogComplaint() {
       setLatitude(location.coords.latitude);
       setLongitude(location.coords.longitude);
       setLocation(location.coords);
+      console.log(location.coords);
 
       ToastAndroid.show(
         "We have successfully retrieved your location",
@@ -80,12 +90,6 @@ export default function LogComplaint() {
     })();
   }, []);
 
-  //  let text = "Waiting..";
-  //  if (errorMsg) {
-  //    text = errorMsg;
-  //  } else if (location) {
-  //    text = JSON.stringify(location);
-  //  }
 
   //submitting the form
 
@@ -100,7 +104,7 @@ export default function LogComplaint() {
     });
     console.log(signupData);
 
-    if (category == "" || description == "" ) {
+    if (category == "" || description == "" || latitude == null) {
       showMessage({
         message: "Fill out the whole form",
         description: "All Form fields are required",
@@ -109,10 +113,18 @@ export default function LogComplaint() {
       return;
     }
     if(latitude == null){
+
+      // let { status } =  Location.requestForegroundPermissionsAsync();
+      // if (status !== "granted") {
+      //   setErrorMsg("Permission to access location was denied");
+      //   return;
+      // }
+
       let location =  Location.getCurrentPositionAsync({});
       setLatitude(location.coords.latitude);
       setLongitude(location.coords.longitude);
       setLocation(location.coords);
+      console.log(location.coords);
     }
 
     //clearing the fields
@@ -120,7 +132,7 @@ export default function LogComplaint() {
     setCategory("");
     setDescription("");
 
-    fetch(`http://172.16.13.49:8002/api/store-complaint`, {
+    fetch(`http://192.168.6.77:8002/api/store-complaint`, {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -145,6 +157,7 @@ export default function LogComplaint() {
             message: "Your complaint has been logged successfully",
             type: "success",
           });
+          navigation.navigate("Complaints", { update });
         }
         // console.log("submitted");
       })
@@ -156,6 +169,14 @@ export default function LogComplaint() {
         });
       });
   };
+
+  // camera logic
+
+  function toggleCameraType() {
+    setType((current) =>
+      current === CameraType.back ? CameraType.front : CameraType.back
+    );
+  }
 
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
@@ -221,6 +242,14 @@ export default function LogComplaint() {
                 value={description}
               />
             </View>
+            {/* <View>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={toggleCameraType}
+              >
+                <Text style={styles.text}>Flip Camera</Text>
+              </TouchableOpacity>
+            </View> */}
 
             <View style={styles.inputBox}>
               <Text style={styles.inputLabel}>My Location</Text>

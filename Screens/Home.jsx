@@ -10,10 +10,7 @@ import {
 } from "react-native";
 
 
-
-
 export default function Home({ navigation }) {
-  
   const data = [
     {
       id: 1,
@@ -34,8 +31,14 @@ export default function Home({ navigation }) {
   const clickEventListener = (item) => {
     Alert.alert("Message", "Item clicked. " + item.name);
   };
+
+  
+
+  
+
   return (
     <View style={styles.container}>
+      {/* <Text>Good Morning</Text> */}
       <FlatList
         style={styles.contentList}
         columnWrapperStyle={styles.listContainer}
@@ -64,11 +67,11 @@ export default function Home({ navigation }) {
           );
         }}
       />
-     
+      {/* adding graph here */}
+      
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {

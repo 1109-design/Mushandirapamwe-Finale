@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useLayoutEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -18,8 +18,11 @@ import axios from "axios";
 import FlashMessage from "react-native-flash-message";
 import { showMessage, hideMessage } from "react-native-flash-message";
 import { withBadge } from "react-native-elements";
+import { useRoute } from "@react-navigation/native";
 
 export default function Complaints({ navigation }) {
+  const route = useRoute();
+
   const [searchText, setSearchText] = useState("");
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
@@ -27,11 +30,12 @@ export default function Complaints({ navigation }) {
   const [animating, setAnimating] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
+  const [update, setUpdate] = useState(false);
 
   useEffect(() => {
     StatusBar.setBarStyle("dark-content", false);
     axios
-      .get(`http://172.16.13.49:8002/api/retrieve-complaints`)
+      .get(`http://192.168.6.77:8002/api/retrieve-complaints`)
       .then(function (response) {
         setIsLoading(false);
         return response.data;
@@ -39,7 +43,7 @@ export default function Complaints({ navigation }) {
       .then((responseData) => {
         setAnimating(false);
         setFilteredUsers(responseData);
-        console.log(responseData);
+        //console.log(responseData);
 
         ToastAndroid.show("List retrieved successfully", ToastAndroid.SHORT);
       })
@@ -52,12 +56,20 @@ export default function Complaints({ navigation }) {
           type: "danger",
         });
       });
+    setUpdate(false);
   }, []);
+
+  useEffect(() => {
+    const focusHandler = navigation.addListener("focus", () => {
+      onRefresh();
+    });
+    return focusHandler;
+  }, [navigation]);
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     axios
-      .get(`http://172.16.13.49:8002/api/retrieve-complaints`)
+      .get(`http://192.168.6.77:8002/api/retrieve-complaints`)
       .then(function (response) {
         setIsLoading(false);
         return response.data;
@@ -65,7 +77,7 @@ export default function Complaints({ navigation }) {
       .then((responseData) => {
         setAnimating(false);
         setFilteredUsers(responseData);
-        ToastAndroid.show("List sucessfully updated", ToastAndroid.SHORT);
+        // ToastAndroid.show("List sucessfully updated", ToastAndroid.SHORT);
       })
       .catch((error) => {
         // Handle any errors that occur
