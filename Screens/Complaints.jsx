@@ -31,11 +31,12 @@ export default function Complaints({ navigation }) {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
   const [update, setUpdate] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     StatusBar.setBarStyle("dark-content", false);
     axios
-      .get(`http://192.168.6.77:8002/api/retrieve-complaints`)
+      .get(`http://192.168.105.77:8002/api/retrieve-complaints`)
       .then(function (response) {
         setIsLoading(false);
         return response.data;
@@ -43,6 +44,7 @@ export default function Complaints({ navigation }) {
       .then((responseData) => {
         setAnimating(false);
         setFilteredUsers(responseData);
+        setLoading(false);
         //console.log(responseData);
 
         ToastAndroid.show("List retrieved successfully", ToastAndroid.SHORT);
@@ -69,7 +71,7 @@ export default function Complaints({ navigation }) {
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     axios
-      .get(`http://192.168.6.77:8002/api/retrieve-complaints`)
+      .get(`http://192.168.105.77:8002/api/retrieve-complaints`)
       .then(function (response) {
         setIsLoading(false);
         return response.data;
@@ -138,6 +140,9 @@ export default function Complaints({ navigation }) {
                 />
                 <View style={styles.userCardRight}>
                   <Text
+                    style={{ fontSize: 25, fontWeight: "400" }}
+                  >{`${user.id}`}</Text>
+                  <Text
                     style={{ fontSize: 16, fontWeight: "400" }}
                   >{`${user.full_name}`}</Text>
                   <Text
@@ -162,6 +167,8 @@ export default function Complaints({ navigation }) {
           </ScrollView>
         ) : (
           <View style={styles.messageBox}>
+            {loading &&
+            <ActivityIndicator size="large" />}
             <Text style={styles.messageBoxText}>No complaints reported</Text>
             <TouchableOpacity style={styles.loginButton} onPress={onRefresh}>
               <Text style={styles.loginButtonText}>Refresh page</Text>

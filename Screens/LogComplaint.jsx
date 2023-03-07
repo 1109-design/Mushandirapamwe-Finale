@@ -12,6 +12,7 @@ import {
   KeyboardAvoidingView,
   Alert,
   ToastAndroid,
+  ActivityIndicator,
 } from "react-native";
 import { Icon } from "react-native-elements";
 import { Picker } from "@react-native-picker/picker";
@@ -31,6 +32,7 @@ export default function LogComplaint({ navigation }) {
   const [fullName, setFullName] = useState(null);
   const [phoneNumber, setPhoneNumber] = useState(null);
   const [description, setDescription] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const update = {
     update: true,
@@ -76,12 +78,25 @@ export default function LogComplaint({ navigation }) {
         setErrorMsg("Permission to access location was denied");
         return;
       }
+      let retries = 0;
+      while (retries < 3) {
+        try {
+          let location = await Location.getCurrentPositionAsync({});
+          setLatitude(location.coords.latitude);
+          setLongitude(location.coords.longitude);
+          setLocation(location.coords);
+          console.log(location.coords);
 
-      let location = await Location.getCurrentPositionAsync({});
-      setLatitude(location.coords.latitude);
-      setLongitude(location.coords.longitude);
-      setLocation(location.coords);
-      console.log(location.coords);
+          // let location = await Location.getCurrentPositionAsync({});
+          // setLocation(location);
+          break;
+        } catch (error) {
+          retries++;
+          console.log(`Error getting location: ${error.message}`);
+        }
+      }
+      
+      setLoading(false);
 
       ToastAndroid.show(
         "We have successfully retrieved your location",
@@ -90,6 +105,9 @@ export default function LogComplaint({ navigation }) {
     })();
   }, []);
 
+   if (loading) {
+     return <ActivityIndicator size="large" />;
+   }
 
   //submitting the form
 
@@ -112,15 +130,14 @@ export default function LogComplaint({ navigation }) {
       });
       return;
     }
-    if(latitude == null){
-
+    if (latitude == null) {
       // let { status } =  Location.requestForegroundPermissionsAsync();
       // if (status !== "granted") {
       //   setErrorMsg("Permission to access location was denied");
       //   return;
       // }
 
-      let location =  Location.getCurrentPositionAsync({});
+      let location = Location.getCurrentPositionAsync({});
       setLatitude(location.coords.latitude);
       setLongitude(location.coords.longitude);
       setLocation(location.coords);
@@ -132,7 +149,7 @@ export default function LogComplaint({ navigation }) {
     setCategory("");
     setDescription("");
 
-    fetch(`http://192.168.6.77:8002/api/store-complaint`, {
+    fetch(`http://192.168.105.77:8002/api/store-complaint`, {
       method: "POST",
       headers: {
         Accept: "application/json",

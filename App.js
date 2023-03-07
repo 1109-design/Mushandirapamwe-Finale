@@ -66,7 +66,7 @@ export default function ReactNavigationBottomTabs() {
               }}
             />
           </Tab.Navigator>
-          <FlashMessage position="top" duration={4000} />
+          <FlashMessage position="center" duration={2000} />
         </NavigationContainer>
       </ActionSheetProvider>
     </>

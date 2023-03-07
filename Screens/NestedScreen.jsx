@@ -11,11 +11,12 @@ import {
 } from "react-native";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import { showMessage, hideMessage } from "react-native-flash-message";
+import axios from "axios";
 
-const NestedScreen = ({ route }) => {
+const NestedScreen = ({ route, navigation }) => {
   const { showActionSheetWithOptions } = useActionSheet();
   const onPress = (complaintId) => {
-    const options = ["Mark as Resolved", "Delete", "Upvote", "Cancel"];
+    const options = ["✅Mark as Resolved", "🚮Delete", "🆙Upvote", "🔙Cancel"];
     const destructiveButtonIndex = 1;
     const cancelButtonIndex = 3;
     const markAsResolved = 0;
@@ -51,18 +52,42 @@ const NestedScreen = ({ route }) => {
 
           case markAsResolved:
             //submit request...
-            console.log(complaintId);
+            // console.log(
+            //   `http://192.168.119.77:8002/api/mark-as-resolved/` + complaintId
+            // );
 
-            // async function markAsResolved() {
-            //   try {
-            //   } catch (error) {}
-            // }
-
-            ToastAndroid.showWithGravity(
-              "Mark as resolved successfully",
-              ToastAndroid.SHORT,
-              ToastAndroid.CENTER
-            );
+            try {
+              axios
+                .get(
+                  `http://192.168.105.77:8002/api/mark-as-resolved/` +
+                    complaintId
+                )
+                .then(function (response) {
+                  console.log(response);
+                  //  setIsLoading(false);
+                  return response.data;
+                })
+                .then((responseData) => {
+                  //  setAnimating(false);
+                  //  setFilteredUsers(responseData);
+                  // ToastAndroid.show("List sucessfully updated", ToastAndroid.SHORT);
+                  showMessage({
+                    message: "Your complaint marked as Resolved",
+                    type: "success",
+                  });
+                  //  navigation.navigate("Complaints");
+                })
+                .catch((error) => {
+                  // Handle any errors that occur
+                  //  console.log(error);
+                  ToastAndroid.show(
+                    "Failed due to network error",
+                    ToastAndroid.SHORT
+                  );
+                });
+            } catch (error) {
+              // console.log(error);
+            }
 
             break;
         }
