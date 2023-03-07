@@ -45,7 +45,7 @@ export default function Complaints({ navigation }) {
         setAnimating(false);
         setFilteredUsers(responseData);
         setLoading(false);
-        //console.log(responseData);
+       
 
         ToastAndroid.show("List retrieved successfully", ToastAndroid.SHORT);
       })

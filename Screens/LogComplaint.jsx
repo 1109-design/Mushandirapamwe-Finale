@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   StyleSheet,
   Text,
@@ -13,6 +13,7 @@ import {
   Alert,
   ToastAndroid,
   ActivityIndicator,
+  PermissionsAndroid,
 } from "react-native";
 import { Icon } from "react-native-elements";
 import { Picker } from "@react-native-picker/picker";
@@ -20,8 +21,12 @@ import FlashMessage from "react-native-flash-message";
 import { showMessage, hideMessage } from "react-native-flash-message";
 import * as Location from "expo-location";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Camera, CameraType } from "expo-camera";
+// import { Camera, CameraType } from "expo-camera";
 import axios from "axios";
+import * as Permissions from "expo-permissions";
+import { Camera } from "expo-camera";
+import * as ImagePicker from "expo-image-picker";
+// import { Icon } from "react-native-elements";
 
 export default function LogComplaint({ navigation }) {
   const [category, setCategory] = useState("");
@@ -33,13 +38,17 @@ export default function LogComplaint({ navigation }) {
   const [phoneNumber, setPhoneNumber] = useState(null);
   const [description, setDescription] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [hasCameraRollPermission, setCameraRollPermission] = useState(null);
+  const [imageUri, setImageUri] = useState(null);
+  const [isCameraReady, setIsCameraReady] = useState(false);
+  const [hasCameraPermission, setHasCameraPermission] = useState(null);
+  const [type, setType] = useState(Camera.Constants.Type.back);
+  const [camera, setCamera] = useState(null);
+  var cameraRef = useRef(null);
 
   const update = {
     update: true,
   };
-
-  // const [type, setType] = useState(CameraType.back);
-  // const [permission, requestPermission] = Camera.useCameraPermissions();
 
   //getting location permissions and cordinates
 
@@ -50,7 +59,7 @@ export default function LogComplaint({ navigation }) {
       try {
         const value = await AsyncStorage.getItem("profileData");
         const data = JSON.parse(value);
-        console.log(data);
+        // console.log(data);
 
         if (value !== null) {
           setFullName(data.fullName);
@@ -64,7 +73,7 @@ export default function LogComplaint({ navigation }) {
           });
         }
       } catch (error) {
-        console.log(error);
+        // console.log(error);
         showMessage({
           message:
             "We are facing a trouble retrieving your info.Try again later",
@@ -87,16 +96,32 @@ export default function LogComplaint({ navigation }) {
           setLocation(location.coords);
           console.log(location.coords);
 
-          // let location = await Location.getCurrentPositionAsync({});
-          // setLocation(location);
           break;
         } catch (error) {
           retries++;
           console.log(`Error getting location: ${error.message}`);
         }
       }
-      
       setLoading(false);
+      //Camera Permissions
+
+      try {
+        const cameraStatus = await Camera.requestCameraPermissionsAsync();
+        setHasCameraPermission(cameraStatus.status === "granted");
+      } catch (error) {
+        console.log(error);
+      }
+
+      // requestCameraPermission;r
+
+      // const requestCameraPermission = async () => {
+      //   const { status } = await Permissions.askAsync(Permissions.CAMERA);
+      //   if (status !== "granted") {
+      //     alert("Camera permission is required");
+      //   }
+      // };
+
+      //end Camera permissions
 
       ToastAndroid.show(
         "We have successfully retrieved your location",
@@ -105,9 +130,9 @@ export default function LogComplaint({ navigation }) {
     })();
   }, []);
 
-   if (loading) {
-     return <ActivityIndicator size="large" />;
-   }
+  if (loading) {
+    return <ActivityIndicator size="large" />;
+  }
 
   //submitting the form
 
@@ -120,7 +145,7 @@ export default function LogComplaint({ navigation }) {
       latitude: latitude,
       longitude: longitude,
     });
-    console.log(signupData);
+    // console.log(signupData);
 
     if (category == "" || description == "" || latitude == null) {
       showMessage({
@@ -141,7 +166,7 @@ export default function LogComplaint({ navigation }) {
       setLatitude(location.coords.latitude);
       setLongitude(location.coords.longitude);
       setLocation(location.coords);
-      console.log(location.coords);
+      // console.log(location.coords);
     }
 
     //clearing the fields
@@ -168,7 +193,7 @@ export default function LogComplaint({ navigation }) {
         // console.log(JSON.stringify(data));
         "POST Response " + responseData;
         // data = JSON.stringify(data);
-        console.log(responseData);
+        // console.log(responseData);
         if (responseData.code == 200) {
           showMessage({
             message: "Your complaint has been logged successfully",
@@ -179,7 +204,7 @@ export default function LogComplaint({ navigation }) {
         // console.log("submitted");
       })
       .catch((error) => {
-        console.log(error);
+        // console.log(error);
         showMessage({
           message: "Oops..Failed to report.Check your network connection",
           type: "danger",
@@ -189,15 +214,65 @@ export default function LogComplaint({ navigation }) {
 
   // camera logic
 
-  function toggleCameraType() {
-    setType((current) =>
-      current === CameraType.back ? CameraType.front : CameraType.back
-    );
+takePicture = async () => {
+  if (camera) {
+    // await camera.pausePreview(); // Pause the camera preview
+    const pictureSizes = await camera.getAvailablePictureSizesAsync("4:3");
+    console.log("pictureSizes:", pictureSizes);
+    const pictureSize = pictureSizes[pictureSizes.length - 1];
+    setTimeout(async () => {
+      try {
+        const options = { ratio: "4:3", quality: 0.5, base64: true };
+        const data = await camera.takePictureAsync(options);
+        console.log(data.uri);
+        await camera.resumePreview(); // Resume the camera preview
+      } catch (error) {
+        console.log("Error taking picture: ", error);
+      }
+    }, 2000); // Wait for 2 seconds before taking the picture
   }
+};
+  if (hasCameraPermission === false) {
+    return <Text>No access to camera</Text>;
+  }
+
+  const chooseImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      // aspect: [4, 3],
+      quality: 1,
+    });
+    if (!result.canceled) {
+      showMessage({
+        message: "Image uploaded successfully",
+        type: "success",
+      });
+      setImageUri(result.assets[0].uri);
+    }
+    console.log(result.assets[0].uri);
+  };
 
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
       <KeyboardAvoidingView style={styles.container}>
+        <View style={styles.cameraContainer}>
+          <Camera
+            ref={(ref) => setCamera(ref)}
+            style={styles.fixedRatio}
+            type={type}
+            ratio={"1:1"}
+          />
+
+          <Camera
+            style={{ flex: 1 }}
+            type={Camera.Constants.Type.back}
+            ref={(ref)  => setCamera(ref)}
+          >
+            {/* <Camera.AutoFocus /> */}
+          </Camera>
+        </View>
+
         <View style={styles.bigCircle}></View>
         <View style={styles.smallCircle}></View>
         <View style={styles.centerizedView}>
@@ -212,6 +287,16 @@ export default function LogComplaint({ navigation }) {
             </View>
             <Text style={styles.loginTitleText}></Text>
             <View style={styles.hr}></View>
+            <View style={styles.inputBox}>
+              {imageUri && (
+                <View>
+                  {/* <Text>{imageUri}</Text> */}
+
+                  {/* <Image source={imageUri} /> */}
+                  <Image source={{ uri: imageUri }} style={styles.preview} />
+                </View>
+              )}
+            </View>
             <View style={styles.inputBox}>
               {/* <Text style={styles.inputLabel}>Category</Text> */}
               <Picker
@@ -259,14 +344,38 @@ export default function LogComplaint({ navigation }) {
                 value={description}
               />
             </View>
-            {/* <View>
-              <TouchableOpacity
-                style={styles.button}
-                onPress={toggleCameraType}
-              >
-                <Text style={styles.text}>Flip Camera</Text>
-              </TouchableOpacity>
-            </View> */}
+            <View style={styles.hr}></View>
+            <View style={styles.inputBox}>
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity
+                  onPress={() => takePicture()}
+                  style={styles.cameraButton}
+                >
+                  <Icon
+                    style={styles.buttonText}
+                    name="camera"
+                    color="#fff"
+                    size={40}
+                  />
+                  {/* <Text style={styles.buttonText}>Take Photo</Text> */}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={chooseImage}
+                  style={styles.cameraButton}
+                >
+                  <Icon
+                    style={styles.buttonText}
+                    name="image"
+                    color="#fff"
+                    size={40}
+                  />
+                  {/* <Text>Select Image</Text> */}
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View style={styles.hr}></View>
 
             <View style={styles.inputBox}>
               <Text style={styles.inputLabel}>My Location</Text>
@@ -391,6 +500,12 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 4,
   },
+  cameraButton: {
+    backgroundColor: "grey",
+    // marginTop: 30,
+    // paddingVertical: 10,
+    borderRadius: 4,
+  },
   loginButtonText: {
     color: "#fff",
     textAlign: "center",
@@ -406,5 +521,27 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 12,
     fontSize: 16,
+  },
+  button: {
+    backgroundColor: "#fff",
+    borderRadius: 5,
+  },
+  buttonText: {
+    color: "#ffff",
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    // position: "absolute",
+    // bottom: 100,
+    paddingHorizontal: 20,
+    paddingVertical: 5,
+    // width: "100%",
+    // backgroundColor: "#dfe4ea",
+  },
+  camera: {
+    justifyContent: "flex-end",
+    alignItems: "center",
   },
 });
