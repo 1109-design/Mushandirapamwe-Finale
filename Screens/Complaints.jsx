@@ -36,7 +36,7 @@ export default function Complaints({ navigation }) {
   useEffect(() => {
     StatusBar.setBarStyle("dark-content", false);
     axios
-      .get(`http://192.168.105.77:8002/api/retrieve-complaints`)
+      .get(`http://192.168.43.108:8002/api/retrieve-complaints`)
       .then(function (response) {
         setIsLoading(false);
         return response.data;
@@ -45,7 +45,6 @@ export default function Complaints({ navigation }) {
         setAnimating(false);
         setFilteredUsers(responseData);
         setLoading(false);
-       
 
         ToastAndroid.show("List retrieved successfully", ToastAndroid.SHORT);
       })
@@ -71,7 +70,7 @@ export default function Complaints({ navigation }) {
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     axios
-      .get(`http://192.168.105.77:8002/api/retrieve-complaints`)
+      .get(`http://192.168.43.108:8002/api/retrieve-complaints`)
       .then(function (response) {
         setIsLoading(false);
         return response.data;

@@ -26,7 +26,8 @@ import axios from "axios";
 import * as Permissions from "expo-permissions";
 import { Camera } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
-// import { Icon } from "react-native-elements";
+
+
 
 export default function LogComplaint({ navigation }) {
   const [category, setCategory] = useState("");
@@ -174,7 +175,7 @@ export default function LogComplaint({ navigation }) {
     setCategory("");
     setDescription("");
 
-    fetch(`http://192.168.105.77:8002/api/store-complaint`, {
+    fetch(`http://172.16.10.218:8002/api/store-complaint`, {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -214,9 +215,9 @@ export default function LogComplaint({ navigation }) {
 
   // camera logic
 
-takePicture = async () => {
+const takePicture = async () => {
   if (camera) {
-    // await camera.pausePreview(); // Pause the camera preview
+    await camera.pausePreview(); // Pause the camera preview
     const pictureSizes = await camera.getAvailablePictureSizesAsync("4:3");
     console.log("pictureSizes:", pictureSizes);
     const pictureSize = pictureSizes[pictureSizes.length - 1];
@@ -225,9 +226,14 @@ takePicture = async () => {
         const options = { ratio: "4:3", quality: 0.5, base64: true };
         const data = await camera.takePictureAsync(options);
         console.log(data.uri);
-        await camera.resumePreview(); // Resume the camera preview
       } catch (error) {
         console.log("Error taking picture: ", error);
+      } finally {
+        try {
+        await camera.resumePreview();
+      } catch (error) {
+        console.log(error);
+      }
       }
     }, 2000); // Wait for 2 seconds before taking the picture
   }
@@ -240,7 +246,7 @@ takePicture = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      // aspect: [4, 3],
+      aspect: [4, 3],
       quality: 1,
     });
     if (!result.canceled) {
@@ -298,7 +304,7 @@ takePicture = async () => {
               )}
             </View>
             <View style={styles.inputBox}>
-              {/* <Text style={styles.inputLabel}>Category</Text> */}
+            
               <Picker
                 selectedValue={category}
                 onValueChange={(value, index) => setCategory(value)}
@@ -325,7 +331,7 @@ takePicture = async () => {
             </View>
 
             <View style={styles.inputBox}>
-              {/* <Text style={styles.inputLabel}>Descriprion</Text> */}
+            
               <TextInput
                 style={[
                   styles.input,
@@ -348,7 +354,7 @@ takePicture = async () => {
             <View style={styles.inputBox}>
               <View style={styles.buttonContainer}>
                 <TouchableOpacity
-                  onPress={() => takePicture()}
+                  onPress={takePicture}
                   style={styles.cameraButton}
                 >
                   <Icon
