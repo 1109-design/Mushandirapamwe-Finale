@@ -27,8 +27,6 @@ import * as Permissions from "expo-permissions";
 import { Camera } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
 
-
-
 export default function LogComplaint({ navigation }) {
   const [category, setCategory] = useState("");
   const [location, setLocation] = useState(null);
@@ -45,7 +43,48 @@ export default function LogComplaint({ navigation }) {
   const [hasCameraPermission, setHasCameraPermission] = useState(null);
   const [type, setType] = useState(Camera.Constants.Type.back);
   const [camera, setCamera] = useState(null);
-  var cameraRef = useRef(null);
+  const [selectedImage, setSelectedImage] = useState(null);
+
+  const handleTakePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission denied");
+      return;
+    }
+    
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      // console.log(result)
+        setSelectedImage(result.assets[0].uri);
+   
+    }
+  };
+
+  const handleSelectPhoto = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission denied");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      // console.log(result);
+      setSelectedImage(result.assets[0].uri);
+    }
+  };
 
   const update = {
     update: true,
@@ -86,10 +125,13 @@ export default function LogComplaint({ navigation }) {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
         setErrorMsg("Permission to access location was denied");
+        alert(
+          "Permission to access location was denied. Please enable location access in your device settings to continue."
+        );
         return;
       }
       let retries = 0;
-      while (retries < 3) {
+      while (retries < 4) {
         try {
           let location = await Location.getCurrentPositionAsync({});
           setLatitude(location.coords.latitude);
@@ -131,21 +173,37 @@ export default function LogComplaint({ navigation }) {
     })();
   }, []);
 
-  if (loading) {
-    return <ActivityIndicator size="large" />;
-  }
+  // if (loading) {
+  //   return <ActivityIndicator size="large" />;
+  // }
 
   //submitting the form
 
   const submitComplaintHandler = () => {
-    var signupData = JSON.stringify({
-      full_name: fullName,
-      phone_number: phoneNumber,
-      category: category,
-      description: description,
-      latitude: latitude,
-      longitude: longitude,
+    const formData = new FormData();
+    formData.append("full_name", fullName);
+    formData.append("phone_number", phoneNumber);
+    formData.append("category", category);
+    formData.append("description", description);
+    formData.append("latitude", latitude);
+    formData.append("longitude", longitude);
+    formData.append("complaintImage", {
+      uri: selectedImage,
+      type: "image/jpeg",
+      name: "complaint.jpg",
     });
+    console.log(formData);
+    // console.log(selectedImage);
+    // var signupData = JSON.stringify({
+    //   full_name: fullName,
+    //   phone_number: phoneNumber,
+    //   category: category,
+    //   description: description,
+    //   latitude: latitude,
+    //   longitude: longitude,
+    //   complaintImage : selectedImage
+
+    // });
     // console.log(signupData);
 
     if (category == "" || description == "" || latitude == null) {
@@ -175,15 +233,15 @@ export default function LogComplaint({ navigation }) {
     setCategory("");
     setDescription("");
 
-    fetch(`http://172.16.10.218:8002/api/store-complaint`, {
+    fetch(`http://172.16.9.235:8008/api/store-complaint`, {
       method: "POST",
       headers: {
         Accept: "application/json",
         // "Content-Type": "application/json",
         // "Content-Type": "multipart/form-data"
-        "content-type": "undefined",
+        // "content-type": "undefined",
       },
-      body: signupData,
+      body: formData,
     })
       .then((response) => {
         response = response.json();
@@ -205,7 +263,7 @@ export default function LogComplaint({ navigation }) {
         // console.log("submitted");
       })
       .catch((error) => {
-        // console.log(error);
+        console.log(error);
         showMessage({
           message: "Oops..Failed to report.Check your network connection",
           type: "danger",
@@ -215,29 +273,29 @@ export default function LogComplaint({ navigation }) {
 
   // camera logic
 
-const takePicture = async () => {
-  if (camera) {
-    await camera.pausePreview(); // Pause the camera preview
-    const pictureSizes = await camera.getAvailablePictureSizesAsync("4:3");
-    console.log("pictureSizes:", pictureSizes);
-    const pictureSize = pictureSizes[pictureSizes.length - 1];
-    setTimeout(async () => {
-      try {
-        const options = { ratio: "4:3", quality: 0.5, base64: true };
-        const data = await camera.takePictureAsync(options);
-        console.log(data.uri);
-      } catch (error) {
-        console.log("Error taking picture: ", error);
-      } finally {
+  const takePicture = async () => {
+    if (camera) {
+      await camera.pausePreview(); // Pause the camera preview
+      const pictureSizes = await camera.getAvailablePictureSizesAsync("4:3");
+      console.log("pictureSizes:", pictureSizes);
+      const pictureSize = pictureSizes[pictureSizes.length - 1];
+      setTimeout(async () => {
         try {
-        await camera.resumePreview();
-      } catch (error) {
-        console.log(error);
-      }
-      }
-    }, 2000); // Wait for 2 seconds before taking the picture
-  }
-};
+          const options = { ratio: "4:3", quality: 0.5, base64: true };
+          const data = await camera.takePictureAsync(options);
+          console.log(data.uri);
+        } catch (error) {
+          console.log("Error taking picture: ", error);
+        } finally {
+          try {
+            await camera.resumePreview();
+          } catch (error) {
+            console.log(error);
+          }
+        }
+      }, 2000); // Wait for 2 seconds before taking the picture
+    }
+  };
   if (hasCameraPermission === false) {
     return <Text>No access to camera</Text>;
   }
@@ -262,23 +320,6 @@ const takePicture = async () => {
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
       <KeyboardAvoidingView style={styles.container}>
-        <View style={styles.cameraContainer}>
-          <Camera
-            ref={(ref) => setCamera(ref)}
-            style={styles.fixedRatio}
-            type={type}
-            ratio={"1:1"}
-          />
-
-          <Camera
-            style={{ flex: 1 }}
-            type={Camera.Constants.Type.back}
-            ref={(ref)  => setCamera(ref)}
-          >
-            {/* <Camera.AutoFocus /> */}
-          </Camera>
-        </View>
-
         <View style={styles.bigCircle}></View>
         <View style={styles.smallCircle}></View>
         <View style={styles.centerizedView}>
@@ -294,17 +335,31 @@ const takePicture = async () => {
             <Text style={styles.loginTitleText}></Text>
             <View style={styles.hr}></View>
             <View style={styles.inputBox}>
-              {imageUri && (
-                <View>
-                  {/* <Text>{imageUri}</Text> */}
-
-                  {/* <Image source={imageUri} /> */}
-                  <Image source={{ uri: imageUri }} style={styles.preview} />
+              {selectedImage && (
+                <View style={{ position: "relative", width: 250, height: 100 }}>
+                  <Image
+                    source={{ uri: selectedImage }}
+                    style={{ width: "100%", height: "100%" }}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setSelectedImage(null)}
+                    style={{ position: "absolute", top: 10, right: 10 }}
+                  >
+                    <Text
+                      style={{
+                        color: "white",
+                        backgroundColor: "red",
+                        padding: 5,
+                        borderRadius: 5,
+                      }}
+                    >
+                      Cancel
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               )}
             </View>
             <View style={styles.inputBox}>
-            
               <Picker
                 selectedValue={category}
                 onValueChange={(value, index) => setCategory(value)}
@@ -331,7 +386,6 @@ const takePicture = async () => {
             </View>
 
             <View style={styles.inputBox}>
-            
               <TextInput
                 style={[
                   styles.input,
@@ -353,31 +407,22 @@ const takePicture = async () => {
             <View style={styles.hr}></View>
             <View style={styles.inputBox}>
               <View style={styles.buttonContainer}>
-                <TouchableOpacity
-                  onPress={takePicture}
-                  style={styles.cameraButton}
-                >
-                  <Icon
-                    style={styles.buttonText}
-                    name="camera"
-                    color="#fff"
-                    size={40}
-                  />
-                  {/* <Text style={styles.buttonText}>Take Photo</Text> */}
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={chooseImage}
-                  style={styles.cameraButton}
-                >
-                  <Icon
-                    style={styles.buttonText}
-                    name="image"
-                    color="#fff"
-                    size={40}
-                  />
-                  {/* <Text>Select Image</Text> */}
-                </TouchableOpacity>
+                <>
+                  <TouchableOpacity
+                    style={styles.button}
+                    onPress={handleTakePhoto}
+                  >
+                    <Text style={styles.buttonText}>Take Photo</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.button}
+                    onPress={handleSelectPhoto}
+                  >
+                    <Text style={styles.buttonText}>
+                      Select Photo from Gallery
+                    </Text>
+                  </TouchableOpacity>
+                </>
               </View>
             </View>
 
@@ -385,17 +430,26 @@ const takePicture = async () => {
 
             <View style={styles.inputBox}>
               <Text style={styles.inputLabel}>My Location</Text>
-              <TextInput
-                style={styles.input}
-                autoCapitalize={false}
-                editable={false}
-                selectTextOnFocus={false}
-                // placeholder={"work"}
-                //  Longitude : {longitude} Latitude :{latitude}
-                value={
-                  "Long :" + " " + longitude + " | " + "Lat :" + " " + latitude
-                }
-              />
+              {loading && <ActivityIndicator size="small" />}
+              {!loading && (
+                <TextInput
+                  style={styles.input}
+                  autoCapitalize={false}
+                  editable={false}
+                  selectTextOnFocus={false}
+                  // placeholder={"work"}
+                  //  Longitude : {longitude} Latitude :{latitude}
+                  value={
+                    "Long :" +
+                    " " +
+                    longitude +
+                    " | " +
+                    "Lat :" +
+                    " " +
+                    latitude
+                  }
+                />
+              )}
             </View>
 
             <TouchableOpacity
@@ -437,7 +491,7 @@ const styles = StyleSheet.create({
   },
   centerizedView: {
     width: "100%",
-    top: "15%",
+    top: "8%",
   },
   authBox: {
     width: "80%",
@@ -549,5 +603,18 @@ const styles = StyleSheet.create({
   camera: {
     justifyContent: "flex-end",
     alignItems: "center",
+  },
+  button: {
+    backgroundColor: "#4CAF50",
+    padding: 5,
+    borderRadius: 5,
+    margin: 5,
+    width: "50%",
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#FFFFFF",
+    fontSize: 10,
+    fontWeight: "bold",
   },
 });

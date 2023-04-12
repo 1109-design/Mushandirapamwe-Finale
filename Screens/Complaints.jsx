@@ -36,7 +36,7 @@ export default function Complaints({ navigation }) {
   useEffect(() => {
     StatusBar.setBarStyle("dark-content", false);
     axios
-      .get(`http://192.168.43.108:8002/api/retrieve-complaints`)
+      .get(`http://172.16.9.235:8008/api/retrieve-complaints`)
       .then(function (response) {
         setIsLoading(false);
         return response.data;
@@ -68,9 +68,10 @@ export default function Complaints({ navigation }) {
   }, [navigation]);
 
   const onRefresh = React.useCallback(() => {
+    console.log('refreshing');
     setRefreshing(true);
     axios
-      .get(`http://192.168.43.108:8002/api/retrieve-complaints`)
+      .get(`http://172.16.9.235:8008/api/retrieve-complaints`)
       .then(function (response) {
         setIsLoading(false);
         return response.data;
