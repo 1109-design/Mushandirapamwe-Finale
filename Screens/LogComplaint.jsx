@@ -51,7 +51,7 @@ export default function LogComplaint({ navigation }) {
       Alert.alert("Permission denied");
       return;
     }
-    
+
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -61,8 +61,7 @@ export default function LogComplaint({ navigation }) {
 
     if (!result.canceled) {
       // console.log(result)
-        setSelectedImage(result.assets[0].uri);
-   
+      setSelectedImage(result.assets[0].uri);
     }
   };
 
@@ -130,30 +129,32 @@ export default function LogComplaint({ navigation }) {
         );
         return;
       }
-      let retries = 0;
-      while (retries < 4) {
-        try {
-          let location = await Location.getCurrentPositionAsync({});
-          setLatitude(location.coords.latitude);
-          setLongitude(location.coords.longitude);
-          setLocation(location.coords);
-          console.log(location.coords);
-
-          break;
-        } catch (error) {
-          retries++;
-          console.log(`Error getting location: ${error.message}`);
-        }
-      }
-      setLoading(false);
+     do {
+       try {
+         let location = await Location.getCurrentPositionAsync({});
+         setLatitude(location.coords.latitude);
+         setLongitude(location.coords.longitude);
+         setLocation(location.coords);  
+         setLoading(false);
+         ToastAndroid.show(
+           "We have successfully retrieved your location",
+           ToastAndroid.SHORT
+         );
+         
+         // console.log(location.coords);
+       } catch (error) {
+         setLatitude(null);
+         console.log(`Error getting location: ${error.message}`);
+       }
+     } while (latitude === null);
       //Camera Permissions
 
-      try {
-        const cameraStatus = await Camera.requestCameraPermissionsAsync();
-        setHasCameraPermission(cameraStatus.status === "granted");
-      } catch (error) {
-        console.log(error);
-      }
+      // try {
+      //   const cameraStatus = await Camera.requestCameraPermissionsAsync();
+      //   setHasCameraPermission(cameraStatus.status === "granted");
+      // } catch (error) {
+      //   console.log(error);
+      // }
 
       // requestCameraPermission;r
 
@@ -166,10 +167,7 @@ export default function LogComplaint({ navigation }) {
 
       //end Camera permissions
 
-      ToastAndroid.show(
-        "We have successfully retrieved your location",
-        ToastAndroid.SHORT
-      );
+     
     })();
   }, []);
 
@@ -179,7 +177,71 @@ export default function LogComplaint({ navigation }) {
 
   //submitting the form
 
-  const submitComplaintHandler = () => {
+  // const submitComplaintHandler = () => {
+  //   const formData = new FormData();
+  //   formData.append("full_name", fullName);
+  //   formData.append("phone_number", phoneNumber);
+  //   formData.append("category", category);
+  //   formData.append("description", description);
+  //   formData.append("latitude", latitude);
+  //   formData.append("longitude", longitude);
+  //   formData.append("complaintImage", {
+  //     uri: selectedImage,
+  //     type: "image/jpeg",
+  //     name: "complaint.jpg",
+  //   });
+    
+
+  //   if (category == "" || description == "" || latitude == null) {
+  //     showMessage({
+  //       message: "Fill out the whole form",
+  //       description: "All Form fields are required",
+  //       type: "danger",
+  //     });
+  //     return;
+  //   }
+   
+  //   //clearing the fields
+
+  //   setCategory("");
+  //   setDescription("");
+
+  //   fetch(`http://172.16.9.70:8008/api/store-complaint`, {
+  //     method: "POST",
+  //     headers: {
+  //       Accept: "application/json",
+    
+  //     },
+  //     body: formData,
+  //   })
+  //     .then((response) => {
+  //       response = response.json();
+  //       // console.log(response);
+  //       return response;
+  //     })
+  //     .then((responseData) => {
+  //       // console.log(JSON.stringify(data));
+  //       "POST Response " + responseData;
+  //       // data = JSON.stringify(data);
+  //       // console.log(responseData);
+  //       if (responseData.code == 200) {
+  //         showMessage({
+  //           message: "Your complaint has been logged successfully",
+  //           type: "success",
+  //         });
+  //         navigation.navigate("Complaints", { update });
+  //       }
+  //       // console.log("submitted");
+  //     })
+  //     .catch((error) => {
+  //       console.log(error);
+  //       showMessage({
+  //         message: "Oops..Failed to report.Check your network connection",
+  //         type: "danger",
+  //       });
+  //     });
+  // };
+  const submitComplaintHandler = async () => {
     const formData = new FormData();
     formData.append("full_name", fullName);
     formData.append("phone_number", phoneNumber);
@@ -192,21 +254,11 @@ export default function LogComplaint({ navigation }) {
       type: "image/jpeg",
       name: "complaint.jpg",
     });
-    console.log(formData);
-    // console.log(selectedImage);
-    // var signupData = JSON.stringify({
-    //   full_name: fullName,
-    //   phone_number: phoneNumber,
-    //   category: category,
-    //   description: description,
-    //   latitude: latitude,
-    //   longitude: longitude,
-    //   complaintImage : selectedImage
 
-    // });
-    // console.log(signupData);
+    // Use a ternary operator to check if the form is valid
+    const isValid = category && description && latitude ? true : false;
 
-    if (category == "" || description == "" || latitude == null) {
+    if (!isValid) {
       showMessage({
         message: "Fill out the whole form",
         description: "All Form fields are required",
@@ -214,61 +266,40 @@ export default function LogComplaint({ navigation }) {
       });
       return;
     }
-    if (latitude == null) {
-      // let { status } =  Location.requestForegroundPermissionsAsync();
-      // if (status !== "granted") {
-      //   setErrorMsg("Permission to access location was denied");
-      //   return;
-      // }
 
-      let location = Location.getCurrentPositionAsync({});
-      setLatitude(location.coords.latitude);
-      setLongitude(location.coords.longitude);
-      setLocation(location.coords);
-      // console.log(location.coords);
-    }
+    // Clearing the fields
+    setCategory(null);
+    setDescription(null);
+    setSelectedImage(null);
 
-    //clearing the fields
-
-    setCategory("");
-    setDescription("");
-
-    fetch(`http://172.16.9.235:8008/api/store-complaint`, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        // "Content-Type": "application/json",
-        // "Content-Type": "multipart/form-data"
-        // "content-type": "undefined",
-      },
-      body: formData,
-    })
-      .then((response) => {
-        response = response.json();
-        // console.log(response);
-        return response;
-      })
-      .then((responseData) => {
-        // console.log(JSON.stringify(data));
-        "POST Response " + responseData;
-        // data = JSON.stringify(data);
-        // console.log(responseData);
-        if (responseData.code == 200) {
-          showMessage({
-            message: "Your complaint has been logged successfully",
-            type: "success",
-          });
-          navigation.navigate("Complaints", { update });
+    // Use async/await and template literals
+    try {
+      const response = await fetch(
+        `http://172.16.9.70:8008/api/store-complaint`,
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+          },
+          body: formData,
         }
-        // console.log("submitted");
-      })
-      .catch((error) => {
-        console.log(error);
+      );
+      const responseData = await response.json();
+      console.log(`POST Response ${responseData}`);
+      if (responseData.code == 200) {
         showMessage({
-          message: "Oops..Failed to report.Check your network connection",
-          type: "danger",
+          message: "Your complaint has been logged successfully",
+          type: "success",
         });
+        navigation.navigate("Complaints", { update });
+      }
+    } catch (error) {
+      console.log(error);
+      showMessage({
+        message: `Oops..Failed to report.Check your network connection`,
+        type: "danger",
       });
+    }
   };
 
   // camera logic

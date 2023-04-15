@@ -36,7 +36,7 @@ export default function Complaints({ navigation }) {
   useEffect(() => {
     StatusBar.setBarStyle("dark-content", false);
     axios
-      .get(`http://172.16.9.235:8008/api/retrieve-complaints`)
+      .get(`http://172.16.9.70:8008/api/retrieve-complaints`)
       .then(function (response) {
         setIsLoading(false);
         return response.data;
@@ -68,10 +68,10 @@ export default function Complaints({ navigation }) {
   }, [navigation]);
 
   const onRefresh = React.useCallback(() => {
-    console.log('refreshing');
+    console.log("refreshing");
     setRefreshing(true);
     axios
-      .get(`http://172.16.9.235:8008/api/retrieve-complaints`)
+      .get(`http://172.16.9.70:8008/api/retrieve-complaints`)
       .then(function (response) {
         setIsLoading(false);
         return response.data;
@@ -167,8 +167,7 @@ export default function Complaints({ navigation }) {
           </ScrollView>
         ) : (
           <View style={styles.messageBox}>
-            {loading &&
-            <ActivityIndicator size="large" />}
+            {loading && <ActivityIndicator size="large" />}
             <Text style={styles.messageBoxText}>No complaints reported</Text>
             <TouchableOpacity style={styles.loginButton} onPress={onRefresh}>
               <Text style={styles.loginButtonText}>Refresh page</Text>

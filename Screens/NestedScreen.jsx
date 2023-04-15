@@ -59,7 +59,7 @@ const NestedScreen = ({ route, navigation }) => {
             try {
               axios
                 .get(
-                  `http://172.16.9.235:8008/api/mark-as-resolved/` + complaintId
+                  `http://172.16.9.70:8008/api/mark-as-resolved/` + complaintId
                 )
                 .then(function (response) {
                   console.log(response);
